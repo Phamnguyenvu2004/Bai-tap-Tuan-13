@@ -1,0 +1,168 @@
+#include <iostream>
+#include <string>
+using namespace std;
+
+// Khai bao cau truc node cho tung gio hang
+struct Node {
+    string customerName;  // Ten khach hang
+    int productCount;     // So luong san pham
+    string *productNames; // Mang ten san pham
+    int *productQuantities; // Mang so luong san pham
+    int *productPrices;   // Mang gia tien san pham
+    Node *next;           // Con tro den node tiep theo
+};
+
+// Khai bao cau truc hang doi
+struct Queue {
+    Node *front; // Phan tu dau hang doi
+    Node *rear;  // Phan tu cuoi hang doi
+
+    // Khoi tao hang doi rong
+    Queue() {
+        front = rear = NULL;
+    }
+
+    // Kiem tra hang doi rong
+    bool isEmpty() {
+        return front == NULL;
+    }
+
+    // Them khach hang vao hang doi
+    void enqueue(string customerName, int productCount, string *productNames, int *productQuantities, int *productPrices) {
+        Node *newNode = new Node;
+        newNode->customerName = customerName;
+        newNode->productCount = productCount;
+        newNode->productNames = productNames;
+        newNode->productQuantities = productQuantities;
+        newNode->productPrices = productPrices;
+        newNode->next = NULL;
+
+        if (isEmpty()) {
+            front = rear = newNode;
+        } else {
+            rear->next = newNode;
+            rear = newNode;
+        }
+    }
+
+    // Loai bo khach hang da thanh toan
+    void dequeue() {
+        if (isEmpty()) {
+            cout << "Hang doi rong, khong co khach hang de thanh toan!" << endl;
+            return;
+        }
+
+        Node *temp = front;
+        front = front->next;
+
+        // Giai phong bo nho cua node
+        delete[] temp->productNames;
+        delete[] temp->productQuantities;
+        delete[] temp->productPrices;
+        delete temp;
+
+        if (front == NULL) {
+            rear = NULL;
+        }
+    }
+
+    // Tinh tong so tien thu duoc trong mot phien lam viec
+    int calculateTotalRevenue() {
+        int totalRevenue = 0;
+        Node *current = front;
+
+        while (current != NULL) {
+            for (int i = 0; i < current->productCount; i++) {
+                totalRevenue += current->productQuantities[i] * current->productPrices[i];
+            }
+            current = current->next;
+        }
+
+        return totalRevenue;
+    }
+
+    // Xac dinh so luong san pham A da ban
+    int countProductSold(string productName) {
+        int totalSold = 0;
+        Node *current = front;
+
+        while (current != NULL) {
+            for (int i = 0; i < current->productCount; i++) {
+                if (current->productNames[i] == productName) {
+                    totalSold += current->productQuantities[i];
+                }
+            }
+            current = current->next;
+        }
+
+        return totalSold;
+    }
+};
+
+int main() {
+    Queue queue;
+    int option;
+
+    do {
+        cout << "\n--- QUAN LY HANG DOI TAI QUAY THU NGAN ---" << endl;
+        cout << "1. Them khach hang vao hang doi" << endl;
+        cout << "2. Loai bo khach hang da thanh toan" << endl;
+        cout << "3. Tinh tong so tien thu duoc" << endl;
+        cout << "4. Xac dinh so luong san pham A da ban" << endl;
+        cout << "0. Thoat chuong trinh" << endl;
+        cout << "Nhap lua chon: ";
+        cin >> option;
+
+        switch (option) {
+            case 1: {
+                string customerName;
+                int productCount;
+                cout << "Nhap ten khach hang: ";
+                cin.ignore();
+                getline(cin, customerName);
+                cout << "Nhap so luong san pham: ";
+                cin >> productCount;
+
+                string *productNames = new string[productCount];
+                int *productQuantities = new int[productCount];
+                int *productPrices = new int[productCount];
+
+                for (int i = 0; i < productCount; i++) {
+                    cout << "Nhap ten san pham " << i + 1 << ": ";
+                    cin.ignore();
+                    getline(cin, productNames[i]);
+                    cout << "Nhap so luong: ";
+                    cin >> productQuantities[i];
+                    cout << "Nhap gia tien: ";
+                    cin >> productPrices[i];
+                }
+
+                queue.enqueue(customerName, productCount, productNames, productQuantities, productPrices);
+                break;
+            }
+            case 2:
+                queue.dequeue();
+                cout << "Da thanh toan xong mot khach hang." << endl;
+                break;
+            case 3:
+                cout << "Tong so tien thu duoc: " << queue.calculateTotalRevenue() << endl;
+                break;
+            case 4: {
+                string productName;
+                cout << "Nhap ten san pham can xac dinh: ";
+                cin.ignore();
+                getline(cin, productName);
+                cout << "So luong san pham \"" << productName << "\" da ban: " << queue.countProductSold(productName) << endl;
+                break;
+            }
+            case 0:
+                cout << "Thoat chuong trinh." << endl;
+                break;
+            default:
+                cout << "Lua chon khong hop le!" << endl;
+        }
+    } while (option != 0);
+
+    return 0;
+}
+
